@@ -11,7 +11,7 @@ export function StockChart({ symbol }: { symbol: string }) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const chartRef = useRef<IChartApi | null>(null)
   const [period, setPeriod] = useState<ChartPeriod>('1mo')
-  const [mode, setMode] = useState<'area' | 'candles'>('area')
+  const [mode, setMode] = useState<'area' | 'candles'>('candles')
   const { data, isLoading } = useStockChart(symbol, period)
 
   useEffect(() => {
@@ -19,15 +19,15 @@ export function StockChart({ symbol }: { symbol: string }) {
     const chart = createChart(containerRef.current, {
       height: 420,
       layout: {
-        background: { type: ColorType.Solid, color: '#111111' },
+        background: { type: ColorType.Solid, color: 'transparent' },
         textColor: '#a3a3a3',
       },
       grid: {
-        vertLines: { color: '#1f1f1f' },
-        horzLines: { color: '#1f1f1f' },
+        vertLines: { color: 'rgba(255, 255, 255, 0.05)' },
+        horzLines: { color: 'rgba(255, 255, 255, 0.05)' },
       },
-      rightPriceScale: { borderColor: '#262626' },
-      timeScale: { borderColor: '#262626' },
+      rightPriceScale: { borderColor: 'rgba(255, 255, 255, 0.08)' },
+      timeScale: { borderColor: 'rgba(255, 255, 255, 0.08)' },
     })
     chartRef.current = chart
     const resize = () => {
@@ -50,10 +50,10 @@ export function StockChart({ symbol }: { symbol: string }) {
     if (!containerRef.current) return
     const next = createChart(containerRef.current, {
       height: 420,
-      layout: { background: { type: ColorType.Solid, color: '#111111' }, textColor: '#a3a3a3' },
-      grid: { vertLines: { color: '#1f1f1f' }, horzLines: { color: '#1f1f1f' } },
-      rightPriceScale: { borderColor: '#262626' },
-      timeScale: { borderColor: '#262626' },
+      layout: { background: { type: ColorType.Solid, color: 'transparent' }, textColor: '#a3a3a3' },
+      grid: { vertLines: { color: 'rgba(255, 255, 255, 0.05)' }, horzLines: { color: 'rgba(255, 255, 255, 0.05)' } },
+      rightPriceScale: { borderColor: 'rgba(255, 255, 255, 0.08)' },
+      timeScale: { borderColor: 'rgba(255, 255, 255, 0.08)' },
     })
     chartRef.current = next
     if (mode === 'candles') {
@@ -77,14 +77,14 @@ export function StockChart({ symbol }: { symbol: string }) {
   }, [data, mode])
 
   return (
-    <section className="rounded-lg border border-background-border bg-background-card p-4">
+    <section className="glass-panel p-4">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <ChartControls period={period} onPeriodChange={setPeriod} />
-        <div className="flex rounded-md border border-background-border p-1">
-          <button className={`h-8 px-3 text-xs ${mode === 'area' ? 'bg-accent text-white' : 'text-text-secondary'}`} onClick={() => setMode('area')}>
+        <div className="flex rounded-md border border-white/5 bg-white/[0.02] p-1">
+          <button className={`h-8 px-3 rounded text-xs transition duration-200 ${mode === 'area' ? 'bg-accent/80 text-white' : 'text-text-secondary hover:text-text-primary'}`} onClick={() => setMode('area')}>
             Area
           </button>
-          <button className={`h-8 px-3 text-xs ${mode === 'candles' ? 'bg-accent text-white' : 'text-text-secondary'}`} onClick={() => setMode('candles')}>
+          <button className={`h-8 px-3 rounded text-xs transition duration-200 ${mode === 'candles' ? 'bg-accent/80 text-white' : 'text-text-secondary hover:text-text-primary'}`} onClick={() => setMode('candles')}>
             Candles
           </button>
         </div>

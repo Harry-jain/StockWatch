@@ -21,6 +21,7 @@ export interface StockQuote {
   longName: string
   exchange: string
   currency: string
+  sparkline?: number[]
 }
 
 export interface OHLCV {

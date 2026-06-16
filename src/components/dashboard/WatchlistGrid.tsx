@@ -6,14 +6,19 @@ import { AddStockModal } from '@/components/dashboard/AddStockModal'
 import { PerformanceBoard } from '@/components/dashboard/PerformanceBoard'
 import { SectorGroupView } from '@/components/dashboard/SectorGroupView'
 import { StockCard } from '@/components/dashboard/StockCard'
+import { StockSearch } from '@/components/dashboard/StockSearch'
 import { Button } from '@/components/ui/Button'
 import { useWatchlist } from '@/hooks/useWatchlist'
+import { useStockQuotes } from '@/hooks/useStockPrice'
 
 export function WatchlistGrid({ initialSymbols }: { initialSymbols: string[] }) {
   const { symbols, add, remove } = useWatchlist()
   const activeSymbols = symbols.length ? symbols : initialSymbols
   const [modalOpen, setModalOpen] = useState(false)
   const [view, setView] = useState<'grid' | 'sector'>('grid')
+
+  const { data: quotesData, isLoading } = useStockQuotes(activeSymbols)
+  const quotes = quotesData?.quotes ?? {}
 
   return (
     <div className="space-y-6">
@@ -36,6 +41,11 @@ export function WatchlistGrid({ initialSymbols }: { initialSymbols: string[] }) 
         </div>
       </div>
 
+      <div className="max-w-md glass-panel p-4 shadow-sm">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-text-secondary mb-3">Quick Search & Add Stock</h2>
+        <StockSearch onSelect={add} />
+      </div>
+
       <PerformanceBoard symbols={activeSymbols} />
 
       {activeSymbols.length === 0 ? (
@@ -45,7 +55,13 @@ export function WatchlistGrid({ initialSymbols }: { initialSymbols: string[] }) 
       ) : view === 'grid' ? (
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {activeSymbols.map((symbol) => (
-            <StockCard key={symbol} symbol={symbol} onRemove={remove} />
+            <StockCard
+              key={symbol}
+              symbol={symbol}
+              quote={quotes[symbol]}
+              isLoading={isLoading}
+              onRemove={remove}
+            />
           ))}
         </section>
       ) : (

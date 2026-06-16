@@ -1,6 +1,7 @@
 import yahooFinance from 'yahoo-finance2'
 import { subDays, subMonths, subYears } from 'date-fns'
 import type { ChartPeriod, NewsItem, OHLCV, SearchResult, StockQuote } from '@/types'
+import { getSparkline, saveSparkline } from '@/lib/redis'
 
 export function normalizeSymbol(input: string): string {
   const symbol = input.trim().toUpperCase()
@@ -48,7 +49,9 @@ export async function getQuote(symbol: string): Promise<StockQuote | null> {
   const normalized = normalizeSymbol(symbol)
   try {
     const quote = (await yahooFinance.quote(normalized)) as unknown as Record<string, unknown>
-    return mapQuote(quote, normalized)
+    const mapped = mapQuote(quote, normalized)
+    mapped.sparkline = await getSparklineData(normalized)
+    return mapped
   } catch (error) {
     console.error(`Yahoo quote failed for ${normalized}`, error)
     return null
@@ -151,11 +154,19 @@ export async function getMultipleQuotes(symbols: string[]): Promise<Record<strin
   try {
     const quotes = (await yahooFinance.quote(uniqueSymbols)) as unknown
     const rows = Array.isArray(quotes) ? quotes : [quotes]
-    return rows.reduce<Record<string, StockQuote>>((acc, row) => {
+    const quotesMap = rows.reduce<Record<string, StockQuote>>((acc, row) => {
       const quote = mapQuote(row as Record<string, unknown>, String((row as Record<string, unknown>).symbol ?? ''))
       acc[quote.symbol] = quote
       return acc
     }, {})
+
+    // Fetch and append sparklines in parallel
+    await Promise.all(
+      Object.keys(quotesMap).map(async (sym) => {
+        quotesMap[sym].sparkline = await getSparklineData(sym)
+      })
+    )
+    return quotesMap
   } catch (error) {
     console.error('Yahoo batch quote failed', error)
     const settled = await Promise.allSettled(uniqueSymbols.map((symbol) => getQuote(symbol)))
@@ -164,4 +175,25 @@ export async function getMultipleQuotes(symbols: string[]): Promise<Record<strin
       return acc
     }, {})
   }
+}
+
+export async function getSparklineData(symbol: string): Promise<number[]> {
+  const normalized = normalizeSymbol(symbol)
+  try {
+    const cached = await getSparkline(normalized)
+    if (cached && cached.length) {
+      return cached
+    }
+
+    const history = await getHistorical(normalized, '5d')
+    const values = history.map((h) => h.close).filter((v) => typeof v === 'number')
+
+    if (values.length > 0) {
+      await saveSparkline(normalized, values)
+      return values
+    }
+  } catch (error) {
+    console.error(`Failed to get sparkline data for ${normalized}`, error)
+  }
+  return []
 }

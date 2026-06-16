@@ -15,7 +15,7 @@ export function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-background-border bg-background-primary/95 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-white/5 bg-background-primary/45 backdrop-blur-md">
       <div className="flex h-14 items-center justify-between px-4">
         <div>
           <p className="font-mono text-base font-semibold text-text-primary">StockWatch</p>

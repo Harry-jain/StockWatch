@@ -6,8 +6,8 @@ export function Badge({ value, children }: { value?: number | null; children?: R
   return (
     <span
       className={clsx(
-        'inline-flex h-7 items-center rounded-md px-2 font-mono text-xs font-semibold',
-        positive ? 'bg-market-upBg text-market-up' : 'bg-market-downBg text-market-down',
+        'inline-flex h-7 items-center px-2.5 font-mono text-xs font-semibold glass-badge border shadow-[0_2px_8px_0_rgba(0,0,0,0.15)] shadow-black/20',
+        positive ? 'text-market-up bg-market-up/10 border-market-up/25 shadow-market-up/5' : 'text-market-down bg-market-down/10 border-market-down/25 shadow-market-down/5',
       )}
     >
       {children ?? formatPercent(value)}

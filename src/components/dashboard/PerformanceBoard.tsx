@@ -75,7 +75,7 @@ export function PerformanceBoard({ symbols }: { symbols: string[] }) {
 
   return (
     <section className="grid gap-4 md:grid-cols-[1fr_360px]">
-      <div className="rounded-lg border border-background-border bg-background-card p-4">
+      <div className="glass-panel p-4">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-text-secondary">Watchlist Pulse</h2>
         {quotesLoading ? (
           <div className="mt-3 grid gap-4 sm:grid-cols-2">
@@ -94,7 +94,7 @@ export function PerformanceBoard({ symbols }: { symbols: string[] }) {
                   <Link
                     key={g.symbol}
                     href={`/stock/${encodeURIComponent(g.symbol)}`}
-                    className="flex items-center justify-between rounded-md border border-background-border bg-background-primary px-3 py-2 transition hover:border-market-up/50"
+                    className="flex items-center justify-between rounded-md border border-white/5 bg-white/[0.02] px-3 py-2 transition hover:border-market-up/40 hover:bg-white/[0.04]"
                   >
                     <div className="min-w-0 pr-2">
                       <span className="block font-mono text-sm font-medium text-text-primary truncate">{g.symbol}</span>
@@ -116,7 +116,7 @@ export function PerformanceBoard({ symbols }: { symbols: string[] }) {
                   <Link
                     key={l.symbol}
                     href={`/stock/${encodeURIComponent(l.symbol)}`}
-                    className="flex items-center justify-between rounded-md border border-background-border bg-background-primary px-3 py-2 transition hover:border-market-down/50"
+                    className="flex items-center justify-between rounded-md border border-white/5 bg-white/[0.02] px-3 py-2 transition hover:border-market-down/40 hover:bg-white/[0.04]"
                   >
                     <div className="min-w-0 pr-2">
                       <span className="block font-mono text-sm font-medium text-text-primary truncate">{l.symbol}</span>
@@ -131,7 +131,7 @@ export function PerformanceBoard({ symbols }: { symbols: string[] }) {
         )}
       </div>
 
-      <div className="flex flex-col rounded-lg border border-background-border bg-background-card p-4">
+      <div className="flex flex-col glass-panel p-4">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-text-secondary">Session Notes</h2>
           {saving ? (
@@ -147,7 +147,7 @@ export function PerformanceBoard({ symbols }: { symbols: string[] }) {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Jot down observations, target prices, or market updates..."
-            className="mt-3 flex-1 min-h-[120px] rounded-md border border-background-border bg-background-primary p-3 text-sm text-text-primary placeholder:text-text-muted focus:border-accent outline-none resize-none"
+            className="mt-3 flex-1 min-h-[120px] glass-input p-3 text-sm text-text-primary placeholder:text-text-muted focus:border-accent outline-none resize-none"
           />
         )}
       </div>

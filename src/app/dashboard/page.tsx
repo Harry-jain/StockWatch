@@ -2,6 +2,8 @@ import { Navbar } from '@/components/layout/Navbar'
 import { WatchlistGrid } from '@/components/dashboard/WatchlistGrid'
 import { getWatchlist } from '@/lib/redis'
 
+export const dynamic = 'force-dynamic'
+
 export default async function DashboardPage() {
   const symbols = await getWatchlist()
   return (

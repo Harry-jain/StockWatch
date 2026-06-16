@@ -12,7 +12,7 @@ export function ChartControls({ period, onPeriodChange }: { period: ChartPeriod;
           type="button"
           onClick={() => onPeriodChange(item)}
           className={`h-8 rounded-md px-3 font-mono text-xs transition ${
-            period === item ? 'bg-accent text-white' : 'border border-background-border text-text-secondary hover:bg-background-elevated'
+            period === item ? 'glass-btn-primary text-white' : 'border border-white/5 bg-white/[0.03] text-text-secondary hover:text-text-primary hover:bg-white/[0.08]'
           }`}
         >
           {item.toUpperCase()}

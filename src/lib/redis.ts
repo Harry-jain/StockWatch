@@ -122,3 +122,19 @@ export async function setSector(symbol: string, sector: string): Promise<void> {
 export async function deletePortfolioEntry(symbol: string): Promise<void> {
   await safeDelete(key(`portfolio:${symbol.toUpperCase()}`))
 }
+
+export async function getSparkline(symbol: string): Promise<number[] | null> {
+  return parseJson<number[] | null>(await safeGetString(key(`sparkline:${symbol.toUpperCase()}`)), null)
+}
+
+export async function saveSparkline(symbol: string, values: number[]): Promise<void> {
+  const k = key(`sparkline:${symbol.toUpperCase()}`)
+  try {
+    memory.set(k, JSON.stringify(values))
+    if (hasRedisEnv) {
+      await redis.set(k, JSON.stringify(values), { ex: 3600 })
+    }
+  } catch (error) {
+    console.error(`Redis set failed for sparkline:${symbol}`, error)
+  }
+}

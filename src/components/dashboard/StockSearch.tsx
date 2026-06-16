@@ -53,7 +53,7 @@ export function StockSearch({ onSelect }: { onSelect: (symbol: string) => Promis
             key={result.symbol}
             type="button"
             onClick={() => select(result.symbol)}
-            className="flex w-full items-center justify-between rounded-md border border-background-border bg-background-card p-3 text-left hover:border-accent"
+            className="flex w-full items-center justify-between rounded-md border border-white/5 bg-white/[0.03] p-3 text-left hover:border-accent hover:bg-white/[0.06] transition duration-200"
           >
             <span className="min-w-0">
               <span className="block font-mono text-sm text-text-primary">{result.symbol}</span>
