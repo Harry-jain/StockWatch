@@ -33,13 +33,57 @@ StockWatch is a private Next.js dashboard for tracking NSE/BSE watchlists, price
 - Gmail account with 2FA and an App Password
 - Optional Twilio account for WhatsApp Sandbox or WhatsApp Business
 
-## First-Time Setup
+## First-Time Setup & Installation
 
-1. Clone the repo and enter it.
-2. Install dependencies: `npm install`
-3. Generate a password hash: `npm run hash-password -- <yourpassword>`
-4. Copy `.env.example` to `.env.local` and fill the required values.
-5. Start development: `npm run dev`
+1. Clone the repository and enter the directory:
+   ```bash
+   cd StockWatch
+   ```
+2. Install the dependencies:
+   ```bash
+   npm install
+   ```
+3. Generate a secure bcrypt password hash for authentication:
+   ```bash
+   npx ts-node scripts/hash-password.ts "yourpassword"
+   ```
+   *(Copy the generated hash output and paste it into `APP_PASSWORD_HASH` inside your `.env.local`)*
+4. Copy the environment template to create your local configuration:
+   ```bash
+   cp .env.example .env.local
+   ```
+   *(Open `.env.local` and fill in your Upstash Redis, QStash, Telegram, and Gmail credentials)*
+
+## Running the Application
+
+Use the following commands in your terminal depending on your task:
+
+### 🚀 Running Locally
+* **Development Mode** (starts local server with hot-reloading):
+  ```bash
+  npm run dev
+  ```
+  Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+* **Production Mode** (compiles, builds, and launches the optimized bundle):
+  ```bash
+  npm run build
+  npm start
+  ```
+
+### 🧪 Code Verification & Testing
+* **Run Test Suite** (runs authentication, formatting, and alert tests):
+  ```bash
+  npm test
+  ```
+* **Run Linter** (verifies code formatting and quality standards):
+  ```bash
+  npm run lint
+  ```
+* **Run Type Check** (verifies strict TypeScript types):
+  ```bash
+  npm run type-check
+  ```
 
 ## Environment Variables Reference
 
