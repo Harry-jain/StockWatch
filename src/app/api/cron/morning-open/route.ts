@@ -1,3 +1,5 @@
+export const maxDuration = 30
+
 import { NextRequest, NextResponse } from 'next/server'
 import { INDEX_SYMBOLS } from '@/lib/constants'
 import { formatISTDate, isMarketOpen } from '@/lib/market'

@@ -1,3 +1,5 @@
+export const maxDuration = 30
+
 import { NextRequest, NextResponse } from 'next/server'
 import { formatISTTime, isMarketOpen } from '@/lib/market'
 import { broadcastNotification } from '@/lib/notifications/notifier'
