@@ -66,10 +66,18 @@ Use the following commands in your terminal depending on your task:
   Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 * **Production Mode** (compiles, builds, and launches the optimized bundle):
-  ```bash
-  npm run build
-  npm start
-  ```
+  * **On macOS / Linux**:
+    ```bash
+    npm run build
+    npm start
+    ```
+  * **On Windows (PowerShell)**:
+    *(Ensure `$env:NODE_ENV` is cleared in your current session to prevent React prerender errors)*:
+    ```powershell
+    $env:NODE_ENV=$null
+    npm run build
+    npm start
+    ```
 
 ### 🧪 Code Verification & Testing
 * **Run Test Suite** (runs authentication, formatting, and alert tests):
