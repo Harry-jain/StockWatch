@@ -1,0 +1,96 @@
+'use client'
+
+import { useEffect, useRef, useState } from 'react'
+import { createChart, ColorType, IChartApi } from 'lightweight-charts'
+import { ChartControls } from '@/components/stock/ChartControls'
+import { Skeleton } from '@/components/ui/Skeleton'
+import { useStockChart } from '@/hooks/useStockChart'
+import type { ChartPeriod } from '@/types'
+
+export function StockChart({ symbol }: { symbol: string }) {
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const chartRef = useRef<IChartApi | null>(null)
+  const [period, setPeriod] = useState<ChartPeriod>('1mo')
+  const [mode, setMode] = useState<'area' | 'candles'>('area')
+  const { data, isLoading } = useStockChart(symbol, period)
+
+  useEffect(() => {
+    if (!containerRef.current) return
+    const chart = createChart(containerRef.current, {
+      height: 420,
+      layout: {
+        background: { type: ColorType.Solid, color: '#111111' },
+        textColor: '#a3a3a3',
+      },
+      grid: {
+        vertLines: { color: '#1f1f1f' },
+        horzLines: { color: '#1f1f1f' },
+      },
+      rightPriceScale: { borderColor: '#262626' },
+      timeScale: { borderColor: '#262626' },
+    })
+    chartRef.current = chart
+    const resize = () => {
+      if (containerRef.current) chart.applyOptions({ width: containerRef.current.clientWidth })
+    }
+    resize()
+    window.addEventListener('resize', resize)
+    return () => {
+      window.removeEventListener('resize', resize)
+      chart.remove()
+      chartRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    const chart = chartRef.current
+    if (!chart || !data?.data.length) return
+    chart.remove()
+    chartRef.current = null
+    if (!containerRef.current) return
+    const next = createChart(containerRef.current, {
+      height: 420,
+      layout: { background: { type: ColorType.Solid, color: '#111111' }, textColor: '#a3a3a3' },
+      grid: { vertLines: { color: '#1f1f1f' }, horzLines: { color: '#1f1f1f' } },
+      rightPriceScale: { borderColor: '#262626' },
+      timeScale: { borderColor: '#262626' },
+    })
+    chartRef.current = next
+    if (mode === 'candles') {
+      const series = next.addCandlestickSeries({
+        upColor: '#22c55e',
+        downColor: '#ef4444',
+        borderVisible: false,
+        wickUpColor: '#22c55e',
+        wickDownColor: '#ef4444',
+      })
+      series.setData(data.data.map((item) => ({ time: item.time as never, open: item.open, high: item.high, low: item.low, close: item.close })))
+    } else {
+      const series = next.addAreaSeries({
+        lineColor: '#3b82f6',
+        topColor: 'rgba(59,130,246,0.35)',
+        bottomColor: 'rgba(59,130,246,0.02)',
+      })
+      series.setData(data.data.map((item) => ({ time: item.time as never, value: item.close })))
+    }
+    next.timeScale().fitContent()
+  }, [data, mode])
+
+  return (
+    <section className="rounded-lg border border-background-border bg-background-card p-4">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <ChartControls period={period} onPeriodChange={setPeriod} />
+        <div className="flex rounded-md border border-background-border p-1">
+          <button className={`h-8 px-3 text-xs ${mode === 'area' ? 'bg-accent text-white' : 'text-text-secondary'}`} onClick={() => setMode('area')}>
+            Area
+          </button>
+          <button className={`h-8 px-3 text-xs ${mode === 'candles' ? 'bg-accent text-white' : 'text-text-secondary'}`} onClick={() => setMode('candles')}>
+            Candles
+          </button>
+        </div>
+      </div>
+      {isLoading ? <Skeleton className="h-[420px]" /> : null}
+      <div ref={containerRef} className={isLoading ? 'hidden' : 'h-[420px] w-full'} />
+    </section>
+  )
+}

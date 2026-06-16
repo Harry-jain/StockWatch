@@ -1,0 +1,53 @@
+{
+  "name": "stockwatch",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "test": "set TS_NODE_PROJECT=tsconfig.test.json&& node --test --require ts-node/register --require tsconfig-paths/register \"src/__tests__/**/*.test.ts\"",
+    "setup-cron": "npx ts-node scripts/setup-qstash.ts",
+    "hash-password": "npx ts-node scripts/hash-password.ts"
+  },
+  "dependencies": {
+    "@upstash/qstash": "2.7.10",
+    "@upstash/ratelimit": "2.0.4",
+    "@upstash/redis": "1.34.3",
+    "bcryptjs": "2.4.3",
+    "clsx": "2.1.1",
+    "date-fns": "3.6.0",
+    "jose": "5.8.0",
+    "lightweight-charts": "4.2.0",
+    "lucide-react": "0.400.0",
+    "next": "14.2.15",
+    "nodemailer": "6.9.14",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "swr": "2.2.5",
+    "yahoo-finance2": "2.11.3"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "2.4.6",
+    "@types/node": "22.5.0",
+    "@types/nodemailer": "6.4.15",
+    "@types/react": "18.3.5",
+    "@types/react-dom": "18.3.0",
+    "autoprefixer": "10.4.19",
+    "eslint": "8.57.0",
+    "eslint-config-next": "14.2.15",
+    "postcss": "8.4.44",
+    "tailwindcss": "3.4.10",
+    "ts-node": "10.9.2",
+    "tsconfig-paths": "4.2.0",
+    "typescript": "5.5.4"
+  },
+  "ts-node": {
+    "compilerOptions": {
+      "module": "CommonJS",
+      "moduleResolution": "node"
+    }
+  }
+}
