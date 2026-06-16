@@ -36,12 +36,35 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    // id + action are required for Apple Keychain / Brave to detect and save the password
+    <form
+      id="stockwatch-login-form"
+      onSubmit={onSubmit}
+      action="/api/auth/login"
+      method="post"
+      className="space-y-4"
+    >
+      {/* Hidden username field — required for password managers to associate a username */}
+      <input
+        type="text"
+        name="username"
+        id="username"
+        autoComplete="username"
+        defaultValue="admin"
+        className="hidden"
+        aria-hidden="true"
+        tabIndex={-1}
+        readOnly
+      />
+
       <label className="block">
         <span className="mb-2 block text-sm text-text-secondary">Password</span>
         <Input
           autoFocus
+          id="password"
+          name="password"
           type="password"
+          autoComplete="current-password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           placeholder="Enter app password"
