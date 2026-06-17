@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
-    "test": "set TS_NODE_PROJECT=tsconfig.test.json&& node --test --require ts-node/register --require tsconfig-paths/register \"src/__tests__/**/*.test.ts\"",
+    "test": "cross-env TS_NODE_PROJECT=tsconfig.test.json node --test --require ts-node/register --require tsconfig-paths/register \"src/__tests__/**/*.test.ts\"",
     "setup-cron": "npx ts-node scripts/setup-qstash.ts",
     "hash-password": "npx ts-node scripts/hash-password.ts"
   },

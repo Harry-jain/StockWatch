@@ -1,18 +1,25 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export function StockNotes({ symbol }: { symbol: string }) {
   const [notes, setNotes] = useState('')
   const [status, setStatus] = useState('')
+  const skipNextSave = useRef(true)
 
   useEffect(() => {
+    skipNextSave.current = true
     fetch(`/api/notes/${encodeURIComponent(symbol)}`)
       .then((res) => res.json())
       .then((payload) => setNotes(payload.notes ?? ''))
   }, [symbol])
 
   useEffect(() => {
+    // Skip the save that the initial-load setNotes() above would otherwise trigger.
+    if (skipNextSave.current) {
+      skipNextSave.current = false
+      return
+    }
     const timer = window.setTimeout(async () => {
       setStatus('Saving')
       await fetch(`/api/notes/${encodeURIComponent(symbol)}`, {

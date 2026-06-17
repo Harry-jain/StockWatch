@@ -22,6 +22,21 @@ body {
 
 body {
   font-family: var(--font-geist-sans);
+  -webkit-tap-highlight-color: transparent;
+  /* Respect iPhone notch / home indicator when PWA is installed full-screen */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* iOS Safari auto-zooms the page when a focused input's font-size is below 16px.
+   Force 16px on small screens so typing in Search/Notes/Portfolio fields doesn't
+   trigger an unwanted pinch-zoom on phones. */
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
 }
 
 ::-webkit-scrollbar {

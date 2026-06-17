@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getMultipleQuotes } from '@/lib/yahoo-finance'
+import { MAX_BATCH_SYMBOLS, isValidSymbol } from '@/lib/validate'
+import { getMultipleQuotes, normalizeSymbol } from '@/lib/yahoo-finance'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
@@ -10,8 +11,9 @@ export async function GET(request: NextRequest) {
 
   const symbols = symbolsParam
     .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean)
+    .map((s) => normalizeSymbol(s.trim()))
+    .filter((s) => s && isValidSymbol(s))
+    .slice(0, MAX_BATCH_SYMBOLS)
 
   if (symbols.length === 0) {
     return NextResponse.json({ quotes: {} })

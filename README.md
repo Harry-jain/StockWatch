@@ -18,7 +18,7 @@ StockWatch is a private Next.js dashboard for tracking NSE/BSE watchlists, price
 | --- | --- |
 | Framework | Next.js 14, React 18, TypeScript |
 | Styling | Tailwind CSS |
-| Market data | yahoo-finance2, no API key |
+| Market data | NSE India API + Yahoo Finance v8 REST, no API key |
 | Storage | Upstash Redis free tier |
 | Scheduler | Upstash QStash free tier |
 | Auth | jose, bcryptjs, Upstash Ratelimit |

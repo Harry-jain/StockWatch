@@ -1,9 +1,32 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
   title: 'StockWatch',
   description: 'Private Indian stock watchlist and alert dashboard',
+  applicationName: 'StockWatch',
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'StockWatch',
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  robots: {
+    index: false,
+    follow: false,
+  },
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: 'cover',
+  themeColor: '#0a0a0a',
+  colorScheme: 'dark',
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
