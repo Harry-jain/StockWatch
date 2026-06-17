@@ -127,6 +127,13 @@ export interface EODSummaryData {
   }>
 }
 
+export interface MarketClosedData {
+  job: 'Morning Open' | 'Hourly Update' | 'EOD Summary'
+  reason: 'weekend' | 'holiday' | 'before-hours' | 'after-hours'
+  time: string
+  date: string
+}
+
 export interface ApiError {
   error: string
 }

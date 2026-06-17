@@ -1,7 +1,7 @@
 export const maxDuration = 30
 
 import { NextRequest, NextResponse } from 'next/server'
-import { formatISTTime, isMarketOpen } from '@/lib/market'
+import { formatISTDate, formatISTTime, getMarketClosedReason } from '@/lib/market'
 import { broadcastNotification } from '@/lib/notifications/notifier'
 import { checkAndStorePrice, checkCustomAlerts } from '@/lib/price-alert'
 import { getWatchlist } from '@/lib/redis'
@@ -19,7 +19,17 @@ function verifyCron(request: NextRequest): NextResponse | null {
 export async function POST(request: NextRequest) {
   const unauthorized = verifyCron(request)
   if (unauthorized) return unauthorized
-  if (!isMarketOpen()) return NextResponse.json({ alerts: 0, total: 0, skipped: 'Market closed' })
+
+  const closedReason = getMarketClosedReason()
+  if (closedReason) {
+    await broadcastNotification('MARKET_CLOSED', {
+      job: 'Hourly Update',
+      reason: closedReason,
+      time: formatISTTime(),
+      date: formatISTDate(),
+    })
+    return NextResponse.json({ alerts: 0, total: 0, skipped: closedReason })
+  }
 
   const watchlist = await getWatchlist()
   const quotes = await getMultipleQuotes(watchlist)
@@ -30,7 +40,7 @@ export async function POST(request: NextRequest) {
   for (const symbol of watchlist) {
     const quote = quotes[symbol]
     if (!quote) continue
-    
+
     // Evaluate standard 5% movement alert
     const result = await checkAndStorePrice(symbol, quote.price)
     if (result.isAlert) {

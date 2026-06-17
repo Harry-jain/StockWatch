@@ -2,11 +2,38 @@ import { formatINR, formatPercent } from '@/lib/format'
 import { sendGmail } from '@/lib/notifications/gmail'
 import { sendTelegramBoth } from '@/lib/notifications/telegram'
 import { sendWhatsAppFamily, sendWhatsAppPersonal } from '@/lib/notifications/whatsapp'
-import type { EODSummaryData, HourlyUpdateData, MorningOpenData, PriceAlertData, CustomAlertData, StockQuote } from '@/types'
+import type {
+  EODSummaryData,
+  HourlyUpdateData,
+  MarketClosedData,
+  MorningOpenData,
+  PriceAlertData,
+  CustomAlertData,
+  StockQuote,
+} from '@/types'
 
-export type NotificationType = 'MORNING_OPEN' | 'HOURLY_UPDATE' | 'PRICE_ALERT' | 'CUSTOM_ALERT' | 'EOD_SUMMARY'
+export type NotificationType =
+  | 'MORNING_OPEN'
+  | 'HOURLY_UPDATE'
+  | 'PRICE_ALERT'
+  | 'CUSTOM_ALERT'
+  | 'EOD_SUMMARY'
+  | 'MARKET_CLOSED'
 
-type NotificationData = MorningOpenData | HourlyUpdateData | PriceAlertData | CustomAlertData | EODSummaryData
+type NotificationData =
+  | MorningOpenData
+  | HourlyUpdateData
+  | PriceAlertData
+  | CustomAlertData
+  | EODSummaryData
+  | MarketClosedData
+
+const MARKET_CLOSED_REASON_TEXT: Record<MarketClosedData['reason'], string> = {
+  weekend: "It's the weekend — NSE and BSE are closed. Next session opens Monday at 09:15 IST.",
+  holiday: 'Today is an NSE/BSE trading holiday. Markets are closed for the day.',
+  'before-hours': "Markets haven't opened yet today — NSE/BSE open at 09:15 IST.",
+  'after-hours': 'Markets have closed for the day (15:30 IST). See you next session.',
+}
 
 function quoteLine(label: string, price?: number, change?: number): string {
   return `${label}: ${formatINR(price)} (${formatPercent(change)})`
@@ -59,6 +86,15 @@ function composeText(type: NotificationType, data: NotificationData): string {
       `${payload.symbol} (${payload.shortName}) has ${directionLabel} your threshold of ${formatINR(payload.threshold)}!`,
       `Current Price: ${formatINR(payload.currentPrice)}`,
       `Threshold: ${formatINR(payload.threshold)}`,
+    ].join('\n')
+  }
+
+  if (type === 'MARKET_CLOSED') {
+    const payload = data as MarketClosedData
+    return [
+      `StockWatch — ${payload.job} (${payload.time})`,
+      'Nothing to update right now: markets are closed.',
+      MARKET_CLOSED_REASON_TEXT[payload.reason],
     ].join('\n')
   }
 
@@ -254,6 +290,20 @@ function composeHtmlTemplate(type: NotificationType, data: NotificationData): st
               <td style="padding:8px 0;text-align:right">${payload.time}</td>
             </tr>
           </table>
+        </div>
+      </div>
+    `
+  }
+
+  if (type === 'MARKET_CLOSED') {
+    const payload = data as MarketClosedData
+    return `
+      <div style="${containerStyle}">
+        <div style="background-color:#111111;border:1px solid #262626;border-radius:6px;padding:24px;text-align:center">
+          <h2 style="color:#a3a3a3;margin:0 0 8px 0;font-size:16px;text-transform:uppercase;letter-spacing:1px">🌙 ${payload.job}</h2>
+          <p style="color:#f5f5f5;font-size:15px;margin:0 0 4px 0;font-weight:bold">Nothing to update — markets are closed</p>
+          <p style="color:#a3a3a3;font-size:13px;margin:8px 0 0 0">${MARKET_CLOSED_REASON_TEXT[payload.reason]}</p>
+          <p style="color:#525252;font-size:11px;margin:16px 0 0 0">${payload.date} · ${payload.time}</p>
         </div>
       </div>
     `

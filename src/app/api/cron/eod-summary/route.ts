@@ -2,7 +2,7 @@ export const maxDuration = 30
 
 import { NextRequest, NextResponse } from 'next/server'
 import { INDEX_SYMBOLS } from '@/lib/constants'
-import { formatISTDate, isWeekday, NSE_HOLIDAYS_2025_2026 } from '@/lib/market'
+import { formatISTDate, formatISTTime, isWeekday, NSE_HOLIDAYS_2025_2026 } from '@/lib/market'
 import { broadcastNotification } from '@/lib/notifications/notifier'
 import { getWatchlist } from '@/lib/redis'
 import { getMultipleQuotes } from '@/lib/yahoo-finance'
@@ -30,8 +30,19 @@ function todayIST(): string {
 export async function POST(request: NextRequest) {
   const unauthorized = verifyCron(request)
   if (unauthorized) return unauthorized
-  if (!isWeekday() || NSE_HOLIDAYS_2025_2026.includes(todayIST())) {
-    return NextResponse.json({ sent: false, skipped: 'Market holiday' })
+
+  // EOD always fires after market close by design (15:35 IST), so we only
+  // treat weekend/holiday as "closed" here -- not the time-of-day check
+  // that morning-open/hourly-update use.
+  const isHoliday = NSE_HOLIDAYS_2025_2026.includes(todayIST())
+  if (!isWeekday() || isHoliday) {
+    await broadcastNotification('MARKET_CLOSED', {
+      job: 'EOD Summary',
+      reason: isHoliday ? 'holiday' : 'weekend',
+      time: formatISTTime(),
+      date: formatISTDate(),
+    })
+    return NextResponse.json({ sent: true, skipped: isHoliday ? 'holiday' : 'weekend' })
   }
 
   const watchlist = await getWatchlist()

@@ -2,7 +2,7 @@ export const maxDuration = 30
 
 import { NextRequest, NextResponse } from 'next/server'
 import { INDEX_SYMBOLS } from '@/lib/constants'
-import { formatISTDate, isMarketOpen } from '@/lib/market'
+import { formatISTDate, formatISTTime, getMarketClosedReason } from '@/lib/market'
 import { broadcastNotification } from '@/lib/notifications/notifier'
 import { getWatchlist } from '@/lib/redis'
 import { getMultipleQuotes } from '@/lib/yahoo-finance'
@@ -19,7 +19,17 @@ function verifyCron(request: NextRequest): NextResponse | null {
 export async function POST(request: NextRequest) {
   const unauthorized = verifyCron(request)
   if (unauthorized) return unauthorized
-  if (!isMarketOpen()) return NextResponse.json({ sent: false, count: 0, skipped: 'Market closed' })
+
+  const closedReason = getMarketClosedReason()
+  if (closedReason) {
+    await broadcastNotification('MARKET_CLOSED', {
+      job: 'Morning Open',
+      reason: closedReason,
+      time: formatISTTime(),
+      date: formatISTDate(),
+    })
+    return NextResponse.json({ sent: true, count: 0, skipped: closedReason })
+  }
 
   const watchlist = await getWatchlist()
   const quotes = await getMultipleQuotes([INDEX_SYMBOLS.nifty, INDEX_SYMBOLS.sensex, ...watchlist])

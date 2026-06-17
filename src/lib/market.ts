@@ -82,6 +82,22 @@ export function isMarketOpen(date = new Date()): boolean {
   return minutes >= open && minutes <= close
 }
 
+export type MarketClosedReason = 'weekend' | 'holiday' | 'before-hours' | 'after-hours'
+
+/** Returns null if the market is currently open, otherwise why it's closed. */
+export function getMarketClosedReason(date = new Date()): MarketClosedReason | null {
+  const parts = getISTParts(date)
+  if (parts.weekday === 'Sat' || parts.weekday === 'Sun') return 'weekend'
+  if (NSE_HOLIDAYS_2025_2026.includes(parts.date)) return 'holiday'
+
+  const minutes = parts.hour * 60 + parts.minute
+  const open = 9 * 60 + 15
+  const close = 15 * 60 + 30
+  if (minutes < open) return 'before-hours'
+  if (minutes > close) return 'after-hours'
+  return null
+}
+
 export function formatISTDate(date = new Date()): string {
   return format(getCurrentISTTimeFrom(date), 'dd MMM yyyy')
 }
