@@ -1,33 +1,60 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Spinner } from '@/components/ui/Spinner'
 import type { SearchResult } from '@/types'
 
+// In-memory, per-session cache so retyping/backspacing over an already-seen
+// query never has to touch the network again. The server also caches in
+// Redis, so the only truly "slow" lookup is the very first time anyone
+// searches a given term.
+const sessionCache = new Map<string, SearchResult[]>()
+
 export function StockSearch({ onSelect }: { onSelect: (symbol: string) => Promise<void> }) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const abortRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
+    const trimmed = query.trim().toLowerCase()
+    if (trimmed.length < 2) {
+      setResults([])
+      setLoading(false)
+      return
+    }
+
+    const cached = sessionCache.get(trimmed)
+    if (cached) {
+      setResults(cached)
+      setLoading(false)
+      return
+    }
+
     const timer = window.setTimeout(async () => {
-      if (query.trim().length < 2) {
-        setResults([])
-        return
-      }
+      abortRef.current?.abort()
+      const controller = new AbortController()
+      abortRef.current = controller
       setLoading(true)
       try {
-        const res = await fetch(`/api/stocks/search?q=${encodeURIComponent(query)}`)
+        const res = await fetch(`/api/stocks/search?q=${encodeURIComponent(trimmed)}`, {
+          signal: controller.signal,
+        })
         const payload = await res.json()
-        setResults(payload.results ?? [])
+        const items: SearchResult[] = payload.results ?? []
+        sessionCache.set(trimmed, items)
+        setResults(items)
+      } catch (err) {
+        if (err instanceof DOMException && err.name === 'AbortError') return
       } finally {
         setLoading(false)
       }
-    }, 350)
+    }, 200)
+
     return () => window.clearTimeout(timer)
   }, [query])
 

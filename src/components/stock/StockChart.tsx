@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { createChart, ColorType, IChartApi } from 'lightweight-charts'
+import { createChart, ColorType, IChartApi, ISeriesApi } from 'lightweight-charts'
 import { ChartControls } from '@/components/stock/ChartControls'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useStockChart } from '@/hooks/useStockChart'
@@ -10,10 +10,16 @@ import type { ChartPeriod } from '@/types'
 export function StockChart({ symbol }: { symbol: string }) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const chartRef = useRef<IChartApi | null>(null)
+  const seriesRef = useRef<ISeriesApi<'Candlestick'> | ISeriesApi<'Area'> | null>(null)
   const [period, setPeriod] = useState<ChartPeriod>('1mo')
   const [mode, setMode] = useState<'area' | 'candles'>('candles')
   const { data, isLoading } = useStockChart(symbol, period)
 
+  // Create the chart exactly once per mount, tear it down exactly once on
+  // unmount. This used to be duplicated in the data/mode effect below
+  // (destroying + recreating the whole chart on every update), which left
+  // this effect's resize listener pointing at an already-disposed chart by
+  // the time the component unmounted -- causing "Object is disposed".
   useEffect(() => {
     if (!containerRef.current) return
     const chart = createChart(containerRef.current, {
@@ -30,50 +36,54 @@ export function StockChart({ symbol }: { symbol: string }) {
       timeScale: { borderColor: 'rgba(255, 255, 255, 0.08)' },
     })
     chartRef.current = chart
+
     const resize = () => {
       if (containerRef.current) chart.applyOptions({ width: containerRef.current.clientWidth })
     }
     resize()
     window.addEventListener('resize', resize)
+
     return () => {
       window.removeEventListener('resize', resize)
-      chart.remove()
+      seriesRef.current = null
       chartRef.current = null
+      chart.remove()
     }
   }, [])
 
+  // Swap the series in place when data or display mode changes. Never
+  // recreate the chart object itself -- only the series on it.
   useEffect(() => {
     const chart = chartRef.current
     if (!chart || !data?.data.length) return
-    chart.remove()
-    chartRef.current = null
-    if (!containerRef.current) return
-    const next = createChart(containerRef.current, {
-      height: 420,
-      layout: { background: { type: ColorType.Solid, color: 'transparent' }, textColor: '#a3a3a3' },
-      grid: { vertLines: { color: 'rgba(255, 255, 255, 0.05)' }, horzLines: { color: 'rgba(255, 255, 255, 0.05)' } },
-      rightPriceScale: { borderColor: 'rgba(255, 255, 255, 0.08)' },
-      timeScale: { borderColor: 'rgba(255, 255, 255, 0.08)' },
-    })
-    chartRef.current = next
+
+    if (seriesRef.current) {
+      chart.removeSeries(seriesRef.current)
+      seriesRef.current = null
+    }
+
     if (mode === 'candles') {
-      const series = next.addCandlestickSeries({
+      const series = chart.addCandlestickSeries({
         upColor: '#22c55e',
         downColor: '#ef4444',
         borderVisible: false,
         wickUpColor: '#22c55e',
         wickDownColor: '#ef4444',
       })
-      series.setData(data.data.map((item) => ({ time: item.time as never, open: item.open, high: item.high, low: item.low, close: item.close })))
+      series.setData(
+        data.data.map((item) => ({ time: item.time as never, open: item.open, high: item.high, low: item.low, close: item.close })),
+      )
+      seriesRef.current = series
     } else {
-      const series = next.addAreaSeries({
+      const series = chart.addAreaSeries({
         lineColor: '#3b82f6',
         topColor: 'rgba(59,130,246,0.35)',
         bottomColor: 'rgba(59,130,246,0.02)',
       })
       series.setData(data.data.map((item) => ({ time: item.time as never, value: item.close })))
+      seriesRef.current = series
     }
-    next.timeScale().fitContent()
+    chart.timeScale().fitContent()
   }, [data, mode])
 
   return (

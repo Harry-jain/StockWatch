@@ -20,5 +20,14 @@ export function usePortfolio(symbol: string) {
     return payload.entry as PortfolioEntry
   }
 
-  return { entry: data ?? null, isLoading, save, mutate }
+  async function remove() {
+    const res = await fetch(`/api/portfolio/${encodeURIComponent(symbol)}`, { method: 'DELETE' })
+    if (!res.ok) {
+      const payload = await res.json().catch(() => ({}))
+      throw new Error(payload.error ?? 'Unable to remove from portfolio')
+    }
+    await mutate(null)
+  }
+
+  return { entry: data ?? null, isLoading, save, remove, mutate }
 }

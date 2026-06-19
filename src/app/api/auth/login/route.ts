@@ -39,7 +39,12 @@ export async function POST(request: NextRequest) {
     secure: true,
     sameSite: 'strict',
     path: '/',
-    maxAge: Number(process.env.JWT_EXPIRY_HOURS ?? '24') * 60 * 60,
+    // Deliberately no maxAge/expires: this is a session cookie that clears
+    // when the browser/PWA is fully closed, so reopening the app always
+    // asks for the password again. The JWT itself still carries its own
+    // JWT_EXPIRY_HOURS expiration as a backstop in case the browser ever
+    // keeps the cookie alive across a close (e.g. some mobile background
+    // process quirks).
   })
   return response
 }

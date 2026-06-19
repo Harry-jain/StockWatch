@@ -2,6 +2,7 @@ import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { Navbar } from '@/components/layout/Navbar'
+import { StockAIPanel } from '@/components/stock/StockAIPanel'
 import { StockAlertPanel } from '@/components/stock/StockAlertPanel'
 import { StockHeader } from '@/components/stock/StockHeader'
 import { StockMetrics } from '@/components/stock/StockMetrics'
@@ -31,6 +32,7 @@ export default async function StockPage({ params }: { params: { symbol: string }
         <StockMetrics quote={quote} />
         <div className="grid gap-4 lg:grid-cols-[1fr_380px]">
           <div className="space-y-4">
+            <StockAIPanel symbol={symbol} />
             <StockNotes symbol={symbol} />
             <StockNewsPanel news={news} />
           </div>

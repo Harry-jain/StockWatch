@@ -16,6 +16,7 @@ import { getNSEQuote, getNSEIndexQuote, NSE_INDEX_SYMBOLS } from '@/lib/nse'
 
 const QUOTE_CACHE_TTL = 60   // seconds
 const CHART_CACHE_TTL = 300  // seconds
+const SEARCH_CACHE_TTL = 600 // seconds — symbol search results barely change
 
 // Alternate between the two Yahoo hosts to spread rate-limit risk
 const YAHOO_HOSTS = [
@@ -221,17 +222,24 @@ export async function getHistorical(symbol: string, period: ChartPeriod): Promis
 }
 
 export async function searchStocks(query: string): Promise<SearchResult[]> {
-  if (query.trim().length < 2) return []
+  const trimmed = query.trim()
+  if (trimmed.length < 2) return []
+
+  const cacheKey = `stockwatch:search_cache:${trimmed.toLowerCase()}`
+  try {
+    const cached = await redis.get<SearchResult[]>(cacheKey)
+    if (cached) return cached
+  } catch { /* miss */ }
 
   interface YahooSearch {
     quotes?: Array<Record<string, unknown>>
   }
 
   const data = await yahooFetch<YahooSearch>(
-    `/v1/finance/search?q=${encodeURIComponent(query)}&quotesCount=10&newsCount=0&enableFuzzyQuery=false`
+    `/v1/finance/search?q=${encodeURIComponent(trimmed)}&quotesCount=10&newsCount=0&enableFuzzyQuery=false`
   )
 
-  return (data?.quotes ?? [])
+  const results = (data?.quotes ?? [])
     .filter((item) => item.quoteType === 'EQUITY')
     .filter((item) => {
       const sym = String(item.symbol ?? '')
@@ -245,6 +253,12 @@ export async function searchStocks(query: string): Promise<SearchResult[]> {
       exchange: item.exchange ? String(item.exchange) : undefined,
       quoteType: 'EQUITY',
     }))
+
+  try {
+    await redis.set(cacheKey, results, { ex: SEARCH_CACHE_TTL })
+  } catch { /* non-fatal */ }
+
+  return results
 }
 
 export async function getQuoteSummaryNews(symbol: string): Promise<NewsItem[]> {

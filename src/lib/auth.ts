@@ -28,7 +28,7 @@ export async function comparePassword(plain: string, hash: string): Promise<bool
 }
 
 export async function signJwt(payload: Record<string, unknown>): Promise<string> {
-  const expiryHours = Number(process.env.JWT_EXPIRY_HOURS ?? '24')
+  const expiryHours = Number(process.env.JWT_EXPIRY_HOURS ?? '12')
   return new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuer(ISSUER)

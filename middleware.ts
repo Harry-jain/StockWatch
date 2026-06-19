@@ -47,7 +47,7 @@ function isAsset(pathname: string): boolean {
   return (
     pathname.startsWith('/_next') ||
     pathname === '/favicon.ico' ||
-    Boolean(pathname.match(/\.(png|jpg|jpeg|gif|svg|ico|css|js|map)$/))
+    Boolean(pathname.match(/\.(png|jpg|jpeg|gif|svg|ico|css|js|map|webmanifest)$/))
   )
 }
 
@@ -105,5 +105,11 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!.*\\..*|_next/static|_next/image).*)'],
+  // Only Next.js's own internal static-asset folders are excluded here.
+  // Everything else -- including stock symbol paths like /stock/RELIANCE.NS
+  // which legitimately contain a "." -- must run through middleware so the
+  // isAsset()/auth checks above actually execute. (The previous matcher
+  // excluded ANY path containing a dot, which silently let every stock
+  // detail page and most per-symbol API routes skip auth entirely.)
+  matcher: ['/((?!_next/static|_next/image).*)'],
 }
