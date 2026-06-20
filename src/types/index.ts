@@ -114,11 +114,33 @@ export interface CustomAlertData {
   time: string
 }
 
+export interface PortfolioHolding {
+  symbol: string
+  shortName: string
+  qty: number
+  avgBuyPrice: number
+  currentPrice: number
+  investedValue: number
+  currentValue: number
+  pnl: number
+  pnlPercent: number
+  allocationPercent: number
+}
+
+export interface PortfolioSummary {
+  holdings: PortfolioHolding[]
+  totalInvested: number
+  totalCurrent: number
+  totalPnl: number
+  totalPnlPercent: number
+}
+
 export interface EODSummaryData {
   date: string
   nifty: StockQuote | null
   sensex: StockQuote | null
   bankNifty: StockQuote | null
+  portfolio?: PortfolioSummary
   performers: Array<{
     symbol: string
     shortName: string

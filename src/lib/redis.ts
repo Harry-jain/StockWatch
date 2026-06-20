@@ -83,8 +83,32 @@ export async function getPortfolioEntry(symbol: string): Promise<PortfolioEntry 
   return parseJson<PortfolioEntry | null>(await safeGetString(key(`portfolio:${symbol.toUpperCase()}`)), null)
 }
 
+export async function getPortfolioIndex(): Promise<string[]> {
+  return parseJson<string[]>(await safeGetString(key('portfolio_index')), [])
+}
+
+async function addToPortfolioIndex(symbol: string): Promise<void> {
+  const index = await getPortfolioIndex()
+  if (!index.includes(symbol)) {
+    await safeSetString(key('portfolio_index'), JSON.stringify([...index, symbol]))
+  }
+}
+
+async function removeFromPortfolioIndex(symbol: string): Promise<void> {
+  const index = await getPortfolioIndex()
+  await safeSetString(key('portfolio_index'), JSON.stringify(index.filter((item) => item !== symbol)))
+}
+
 export async function upsertPortfolioEntry(symbol: string, entry: PortfolioEntry): Promise<void> {
-  await safeSetString(key(`portfolio:${symbol.toUpperCase()}`), JSON.stringify(entry))
+  const normalized = symbol.toUpperCase()
+  await safeSetString(key(`portfolio:${normalized}`), JSON.stringify(entry))
+  await addToPortfolioIndex(normalized)
+}
+
+export async function getAllPortfolioEntries(): Promise<PortfolioEntry[]> {
+  const index = await getPortfolioIndex()
+  const entries = await Promise.all(index.map((symbol) => getPortfolioEntry(symbol)))
+  return entries.filter((entry): entry is PortfolioEntry => entry !== null)
 }
 
 export async function getNotes(symbol: string): Promise<string> {
@@ -120,7 +144,9 @@ export async function setSector(symbol: string, sector: string): Promise<void> {
 }
 
 export async function deletePortfolioEntry(symbol: string): Promise<void> {
-  await safeDelete(key(`portfolio:${symbol.toUpperCase()}`))
+  const normalized = symbol.toUpperCase()
+  await safeDelete(key(`portfolio:${normalized}`))
+  await removeFromPortfolioIndex(normalized)
 }
 
 export async function getSparkline(symbol: string): Promise<number[] | null> {

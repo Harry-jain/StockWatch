@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { INDEX_SYMBOLS } from '@/lib/constants'
 import { formatISTDate, formatISTTime, isWeekday, NSE_HOLIDAYS_2025_2026 } from '@/lib/market'
 import { broadcastNotification } from '@/lib/notifications/notifier'
+import { computePortfolioSummary } from '@/lib/portfolio'
 import { getWatchlist } from '@/lib/redis'
 import { getMultipleQuotes } from '@/lib/yahoo-finance'
 
@@ -46,7 +47,10 @@ export async function POST(request: NextRequest) {
   }
 
   const watchlist = await getWatchlist()
-  const quotes = await getMultipleQuotes([INDEX_SYMBOLS.nifty, INDEX_SYMBOLS.sensex, INDEX_SYMBOLS.bankNifty, ...watchlist])
+  const [quotes, portfolio] = await Promise.all([
+    getMultipleQuotes([INDEX_SYMBOLS.nifty, INDEX_SYMBOLS.sensex, INDEX_SYMBOLS.bankNifty, ...watchlist]),
+    computePortfolioSummary(),
+  ])
   const performers = watchlist
     .map((symbol) => quotes[symbol])
     .filter(Boolean)
@@ -62,6 +66,7 @@ export async function POST(request: NextRequest) {
     nifty: quotes[INDEX_SYMBOLS.nifty] ?? null,
     sensex: quotes[INDEX_SYMBOLS.sensex] ?? null,
     bankNifty: quotes[INDEX_SYMBOLS.bankNifty] ?? null,
+    portfolio: portfolio.holdings.length > 0 ? portfolio : undefined,
     performers,
   })
 

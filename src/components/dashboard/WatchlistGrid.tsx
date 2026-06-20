@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Grid2X2, Layers, Plus } from 'lucide-react'
 import { AddStockModal } from '@/components/dashboard/AddStockModal'
 import { PerformanceBoard } from '@/components/dashboard/PerformanceBoard'
+import { PortfolioOverview } from '@/components/dashboard/PortfolioOverview'
 import { SectorGroupView } from '@/components/dashboard/SectorGroupView'
 import { StockCard } from '@/components/dashboard/StockCard'
 import { StockSearch } from '@/components/dashboard/StockSearch'
@@ -45,6 +46,8 @@ export function WatchlistGrid({ initialSymbols }: { initialSymbols: string[] }) 
         <h2 className="text-xs font-semibold uppercase tracking-wider text-text-secondary mb-3">Quick Search & Add Stock</h2>
         <StockSearch onSelect={add} />
       </div>
+
+      <PortfolioOverview />
 
       <PerformanceBoard symbols={activeSymbols} />
 

@@ -102,6 +102,14 @@ function composeText(type: NotificationType, data: NotificationData): string {
   const sorted = [...payload.performers].sort((a, b) => b.dayChangePercent - a.dayChangePercent)
   const best = sorted.slice(0, 3).map((item, index) => `${index + 1}. ${item.symbol} ${formatPercent(item.dayChangePercent)} ${formatINR(item.price)}`)
   const worst = sorted.slice(-3).reverse().map((item, index) => `${index + 1}. ${item.symbol} ${formatPercent(item.dayChangePercent)} ${formatINR(item.price)}`)
+  const portfolioLines = payload.portfolio
+    ? [
+        '',
+        'Your Portfolio:',
+        `Current value: ${formatINR(payload.portfolio.totalCurrent)} (invested ${formatINR(payload.portfolio.totalInvested)})`,
+        `Overall P&L: ${formatINR(payload.portfolio.totalPnl)} (${formatPercent(payload.portfolio.totalPnlPercent)})`,
+      ]
+    : []
   return [
     `Market Close - 15:30 IST - ${payload.date}`,
     "Today's Performance in Your Watchlist:",
@@ -113,6 +121,7 @@ function composeText(type: NotificationType, data: NotificationData): string {
     payload.nifty ? quoteLine('NIFTY 50', payload.nifty.price, payload.nifty.changePercent) : '',
     payload.sensex ? quoteLine('SENSEX', payload.sensex.price, payload.sensex.changePercent) : '',
     payload.bankNifty ? quoteLine('BANK NIFTY', payload.bankNifty.price, payload.bankNifty.changePercent) : '',
+    ...portfolioLines,
   ].filter(Boolean).join('\n')
 }
 
@@ -364,6 +373,28 @@ function composeHtmlTemplate(type: NotificationType, data: NotificationData): st
           </td>` : ''}
         </tr>
       </table>
+
+      ${payload.portfolio ? `
+      <!-- Portfolio Summary -->
+      <h3 style="font-size:13px;color:#a3a3a3;text-transform:uppercase;margin:16px 0 8px 0;letter-spacing:0.5px">Your Portfolio</h3>
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:20px">
+        <tr>
+          <td width="50%" style="padding-right:4px">
+            <div style="background:#111111;border:1px solid #262626;padding:12px;border-radius:6px">
+              <span style="display:block;font-size:10px;color:#a3a3a3">CURRENT VALUE</span>
+              <span style="display:block;font-size:17px;font-weight:bold;color:#f5f5f5;margin-top:4px">${formatINR(payload.portfolio.totalCurrent)}</span>
+              <span style="font-size:11px;color:#a3a3a3">invested ${formatINR(payload.portfolio.totalInvested)}</span>
+            </div>
+          </td>
+          <td width="50%" style="padding-left:4px">
+            <div style="background:#111111;border:1px solid #262626;padding:12px;border-radius:6px">
+              <span style="display:block;font-size:10px;color:#a3a3a3">OVERALL P&amp;L</span>
+              <span style="display:block;font-size:17px;font-weight:bold;color:${payload.portfolio.totalPnl >= 0 ? '#22c55e' : '#ef4444'};margin-top:4px">${formatINR(payload.portfolio.totalPnl)}</span>
+              ${htmlBadge(payload.portfolio.totalPnlPercent)}
+            </div>
+          </td>
+        </tr>
+      </table>` : ''}
 
       <!-- Top Gainers -->
       <h3 style="font-size:13px;color:#22c55e;text-transform:uppercase;margin:16px 0 8px 0;letter-spacing:0.5px">Top Performers</h3>
