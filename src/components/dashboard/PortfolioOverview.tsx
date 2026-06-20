@@ -17,7 +17,15 @@ export function PortfolioOverview() {
   }
 
   if (!data || data.holdings.length === 0) {
-    return null
+    return (
+      <section className="glass-panel p-4">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Portfolio</h2>
+        <p className="mt-3 text-sm text-text-muted">
+          No positions tracked yet. Open any stock and add a quantity + average buy price under &ldquo;Portfolio&rdquo; to
+          see your totals here.
+        </p>
+      </section>
+    )
   }
 
   const up = data.totalPnl >= 0
